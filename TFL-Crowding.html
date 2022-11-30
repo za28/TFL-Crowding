@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+    <head>
+     <meta charset="utf-8"/>
+     <title>TFL Crowding Information</title>
+     <script
+        src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js">
+     </script>
+     <script
+        src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js">
+     </script>
+     <script type="text/javascript">
+
+        const onButtonClick = () => {
+
+            //gets the users selections
+            const tubeStation = document.getElementById("tubeStation").value
+            const day = document.getElementById("day").value
+
+
+           const xhttp = new XMLHttpRequest();
+
+            xhttp.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    // makes the result a json
+                    const json = JSON.parse(this.responseText);
+                   
+                     let AM_Peak = json.amPeakTimeBand;
+                     let PM_Peak = json.pmPeakTimeBand;
+                     document.getElementById("AM_Peak").innerHTML = "AM Peak: " + AM_Peak;
+                     document.getElementById("PM_Peak").innerHTML = "PM Peak: " + PM_Peak;
+
+                    let  time_Bands = json.timeBands;
+                     
+                    //gets all the time bands and all the percentages
+                    const labels = time_Bands.map(time_Band => time_Band.timeBand)
+                    const crowding = time_Bands.map(time_Band => time_Band.percentageOfBaseLine*100);
+
+                    //data for bar chart
+                    //labels are the time bands 
+                    //data is the percentages
+                    const data = {
+                        labels: labels,
+                        datasets: [{
+                        label: "Crowding",
+                        data: crowding,
+                    }]
+                    };
+
+                    //config for bar chart
+                    const config = {
+                        type: 'bar',
+                        data: data,
+                        options: {
+                        scales: {
+                        y: {
+                            beginAtZero: true,
+                            suggestedMax: 100
+                        }
+                        }
+                        }
+                    };
+
+                    //empties rows of crowding table
+                    $("#crowdingTable tr").remove(); 
+
+                    //adds column titles for crowding table
+                    $("#crowdingTable").find('tbody')
+                        .append($('<tr>')
+                            .append($('<td>')
+                                .text("Time Band List")
+                            )
+                            .append($('<td>')
+                                .text("Percentage Of Base Line List")
+                            )
+                        );
+
+                    //adds time bands and percentages to crowding table
+                    time_Bands.forEach(time_Band => $("#crowdingTable").find('tbody')
+                        .append($('<tr>')
+                            .append($('<td>')
+                                .text(time_Band.timeBand)
+                            )
+                            .append($('<td>')
+                                .text(Math.round(time_Band.percentageOfBaseLine*100))
+                            )
+                    )); 
+
+                    //destroys the previous chart, if there is one
+                    //let chart = Chart.getChart("crowdingChart")
+                    if (Chart.getChart("crowdingChart") != null) {
+                        Chart.getChart("crowdingChart").destroy();
+                    }
+
+                    //creates chart
+                    new Chart(document.getElementById("crowdingChart"),config);
+
+                } 
+            };
+
+            xhttp.open("GET", `https://api.tfl.gov.uk/crowding/${tubeStation}/${day}`,true)
+            //set api key as a header
+            xhttp.setRequestHeader("app_key","b0f04d1cbd73451084bcf0c6a7a678f9")
+            xhttp.send()
+
+        }
+     </script>
+
+    </head>
+    <body>
+        <!--Level 1 header greeting-->
+        <h1>View Crowding Information at Tube Stations</h1>
+
+        <!--drop downs for tube station and day-->
+        <!--tube stations map to the NaPTAN ID-->
+            <label>Tube Station:
+            <select name = "tube station" size="1" id="tubeStation">
+                <option value = "940GZZLUPAC">Paddington</option>
+                <option value = "940GZZLUKSX">King's Cross St Pancras</option>
+                <option value = "940GZZLUEUS">Euston</option>
+                <option value = "940GZZLUWLO">Waterloo</option>
+                <option value = "940GZZLULNB">London Bridge</option>
+                <option value = "940GZZLULVT">Liverpool Street</option>
+            </select></label><br>
+        
+        <!--days are in format that needs to be sent to API-->
+            <label>Day:
+            <select name = "day" size="1" id="day">
+                <option value = "mon">Monday</option>
+                <option value = "tue">Tuesday</option>
+                <option value = "wed">Wednesday</option>
+                <option value = "thu">Thursday</option>
+                <option value = "fri">Friday</option>
+                <option value = "sat">Saturday</option>
+                <option value = "sun">Sunday</option>
+            </select></label><br>
+
+            <!--button to view crowding info-->
+            <!--triggers a JavaScript function-->
+            <button type="button"  onclick="onButtonClick()">Submit</button>
+
+        <!--empty canvas for chart-->
+        <div>
+            <canvas id="crowdingChart"></canvas>
+        </div>
+       
+            <div id="AM_Peak"></div>
+
+            <div id="PM_Peak"></div>
+
+            <h2>Table of Crowding</h2>
+
+            <!--empty table for crowding-->
+            <table id="crowdingTable">
+                <tbody id="crowdingTableBody">
+
+                </tbody>
+            </table>
+    </body>
+</html>
