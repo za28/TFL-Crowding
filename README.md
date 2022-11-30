@@ -12,5 +12,6 @@ y-axis and time-bands (i.e., 15 minute intervals) on the x-axis. Below this the 
 time frame, and PM peak time frame, should be noted. Below this there should be a
 table showing the crowding in 15-minute increments.
 
-<img width="452" alt="image" src="https://user-images.githubusercontent.com/114661472/204899475-d15bc263-c529-425c-b960-7465780512da.png">
+![image](https://user-images.githubusercontent.com/114661472/204899769-f55ec605-4394-4be0-a09d-291561054e6b.png)
+
 
